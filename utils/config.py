@@ -15,7 +15,6 @@ def readConfig():
 def saveConfig():
     global settings
 
-
     with open(config_filepath, "w", encoding="utf-8") as data_file:
         json.dump(settings, data_file, indent=4)
 
