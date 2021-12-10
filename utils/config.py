@@ -15,6 +15,7 @@ def readConfig():
 def saveConfig():
     global settings
 
+
     with open(config_filepath, "w", encoding="utf-8") as data_file:
         json.dump(settings, data_file, indent=4)
 
@@ -30,8 +31,7 @@ def createConfig():
     if not os.path.exists(os.path.dirname(config_filepath)):
         os.makedirs(os.path.dirname(config_filepath))
 
-    with open(config_filepath, "w", encoding="utf-8") as data_file:
-        json.dump(config, data_file, indent=4)
+    saveConfig()
 
 
 # Load config into memory
