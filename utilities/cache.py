@@ -23,8 +23,9 @@ def createCache():
     global values
 
     values = {
-        "directory_users_count": -1,
-        "exchange_address_list_ids": ""
+        "scraped_users_count": -1,
+        "scraped_users_timestamp": "",
+        "scrape_duration": ""
     }
 
     if not os.path.exists(os.path.dirname(cache_filepath)):
@@ -36,6 +37,13 @@ def createCache():
 def update(key, value):
     # Use function so it auto saves the cache value
     values[key] = value
+    saveCache()
+
+
+def updateKeysFromList(key_list, new_value_list):
+    # Use function so it auto saves the cache value
+    for i in range(len(key_list)):
+        values[key_list[i]] = new_value_list[i]
     saveCache()
 
 
