@@ -1,9 +1,12 @@
+import random
+
 import requests
 import utilities.config
 import utilities.filepaths
 # from utilities.tools import saveJsonToFile
 import utilities.tools
 
+from utilities.filepaths import responses_dir
 
 # Every function in this file has to directly make it's own web request.
 
@@ -32,7 +35,7 @@ def makeFindPeopleRequest(request_id, max_entries_size, save_request):
 
     headers = {
         'x-owa-canary': utilities.config.settings["X-OWA-CANARY"],
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36',
+        'user-agent': f'Mozilla/{random.randint(3, 10)}.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36',
         'x-owa-urlpostdata': f'%7B%22__type%22%3A%22FindPeopleJsonRequest%3A%23Exchange%22%2C%22Header%22%3A%7B%22__type%22%3A%22JsonRequestHeaders%3A%23Exchange%22%2C%22RequestServerVersion%22%3A%22V2018_01_08%22%2C%22TimeZoneContext%22%3A%7B%22__type%22%3A%22TimeZoneContext%3A%23Exchange%22%2C%22TimeZoneDefinition%22%3A%7B%22__type%22%3A%22TimeZoneDefinitionType%3A%23Exchange%22%2C%22Id%22%3A%22Eastern%20Standard%20Time%22%7D%7D%7D%2C%22Body%22%3A%7B%22IndexedPageItemView%22%3A%7B%22__type%22%3A%22IndexedPageView%3A%23Exchange%22%2C%22BasePoint%22%3A%22Beginning%22%2C%22Offset%22%3A{beginning_offset}%2C%22MaxEntriesReturned%22%3A{max_entries_size}%7D%2C%22QueryString%22%3Anull%2C%22ParentFolderId%22%3A%7B%22__type%22%3A%22TargetFolderId%3A%23Exchange%22%2C%22BaseFolderId%22%3A%7B%22__type%22%3A%22AddressListId%3A%23Exchange%22%2C%22Id%22%3A%22{utilities.config.settings["GAL_ID"]}%22%7D%7D%2C%22PersonaShape%22%3A%7B%22__type%22%3A%22PersonaResponseShape%3A%23Exchange%22%2C%22BaseShape%22%3A%22Default%22%2C%22AdditionalProperties%22%3A%5B%7B%22__type%22%3A%22PropertyUri%3A%23Exchange%22%2C%22FieldURI%22%3A%22PersonaAttributions%22%7D%2C%7B%22__type%22%3A%22PropertyUri%3A%23Exchange%22%2C%22FieldURI%22%3A%22PersonaTitle%22%7D%2C%7B%22__type%22%3A%22PropertyUri%3A%23Exchange%22%2C%22FieldURI%22%3A%22PersonaOfficeLocations%22%7D%5D%7D%2C%22ShouldResolveOneOffEmailAddress%22%3Afalse%2C%22SearchPeopleSuggestionIndex%22%3Afalse%7D%7D',
         'action': 'FindPeople',
         'content-type': 'application/json; charset=utf-8',
@@ -55,7 +58,10 @@ def makeFindPeopleRequest(request_id, max_entries_size, save_request):
     if response.status_code == 200:
         if save_request:
             returned_users = len(response.json()['Body']['ResultSet'])
-            response_filepath = f"{utilities.filepaths.responses_dir}/id_{request_id}_users_{beginning_offset}_to_{beginning_offset + returned_users - 1}.json"
+
+            response_filename = f"id_{f'{request_id}':0>3}_users_{f'{beginning_offset}':0>6}_to_{f'{beginning_offset + returned_users - 1}':0>6}.json"
+            response_filepath = responses_dir.joinpath(response_filename)
+
             utilities.tools.saveJsonToFile(response, response_filepath)
 
         return response.json()

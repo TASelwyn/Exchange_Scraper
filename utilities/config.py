@@ -1,8 +1,9 @@
 import json
 import os
-
+from utilities.filepaths import data_root
 global settings
-config_filepath = "data/config.json"
+config_filepath = data_root.joinpath("config.json")
+
 auth_cookies_to_store = ["domainName", "OpenIdConnect.token.v1", "X-OWA-CANARY"]
 
 
@@ -33,8 +34,7 @@ def createConfig():
         "app_url": "https://outlook.office.com/owa/service.svc"
     }
 
-    if not os.path.exists(os.path.dirname(config_filepath)):
-        os.makedirs(os.path.dirname(config_filepath))
+    data_root.mkdir(parents=True, exist_ok=True)
 
     saveConfig()
 

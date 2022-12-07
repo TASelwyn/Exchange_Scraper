@@ -8,6 +8,8 @@ import utilities.config
 from datetime import datetime
 import utilities.cache
 import utilities.format
+from concurrent.futures import ThreadPoolExecutor
+from utilities.filepaths import responses_dir
 
 
 def checkCanTokensLogin():
@@ -54,7 +56,7 @@ def getDirectoryUserCount():
     return modules.requester.makeFindPeopleRequest(0, 1, False)["Body"]["TotalNumberOfPeopleInView"]
 
 
-def writeHeader(file_to_write):
+def write_csv_header(file_to_write):
     header = ['ADObjectId', 'PersonaId', 'Encoded Display Name', 'GivenName', 'Surname', 'EmailAddress',
               'City']
 
@@ -64,15 +66,14 @@ def writeHeader(file_to_write):
 
 
 def saveJsonToFile(response, filepath):
-    if not os.path.exists(os.path.dirname(filepath)):
-        os.makedirs(os.path.dirname(filepath))
-
+    filepath.parent.mkdir(parents=True, exist_ok=True)
     with open(filepath, 'w') as outfile:
         json.dump(response.json(), outfile, indent=4)
 
 
 def responseFolderToCSV(csv_filepath):
-    writeHeader(csv_filepath)
+    csv_filepath.parent.mkdir(parents=True, exist_ok=True)
+    write_csv_header(csv_filepath)
     for filename in os.listdir(utilities.filepaths.responses_dir):
         with open(f"{utilities.filepaths.responses_dir}/{filename}", encoding="utf-8") as data_file:
             request_json_obj = json.loads(data_file.read())
@@ -81,6 +82,7 @@ def responseFolderToCSV(csv_filepath):
 
 def responsePrintToCSV(json_of_response, output_file):
     input_json = json_of_response['Body']['ResultSet']
+
 
     with open(output_file, "a", newline='', encoding="utf-8") as file:
         csvWriter = csv.writer(file)
@@ -96,11 +98,23 @@ def responsePrintToCSV(json_of_response, output_file):
 
 
 def wipeResponseFolder():
-    if not os.path.exists(os.path.dirname(utilities.filepaths.responses_dir)):
-        os.makedirs(os.path.dirname(utilities.filepaths.responses_dir))
+    responses_dir.mkdir(parents=True, exist_ok=True)
 
     for filename in os.listdir(utilities.filepaths.responses_dir):
         os.remove(f"{utilities.filepaths.responses_dir}/{filename}")
+
+
+def make_thread_request(request_id):
+    request_size = 1000
+
+    request_start = datetime.now()
+
+    responseData = modules.requester.makeFindPeopleRequest(request_id, request_size, True)
+    returned_users = len(responseData['Body']['ResultSet'])
+
+    request_end = datetime.now()
+
+    return request_id, returned_users, request_start, request_end
 
 
 def makeRequestsForScrape(start_request, end_request, request_size):
@@ -110,25 +124,23 @@ def makeRequestsForScrape(start_request, end_request, request_size):
     users_scraped = 0
     request_end = 0
 
-    for request_id in range(start_request, end_request):
-        request_start = datetime.now()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        for result in executor.map(make_thread_request, range(start_request, end_request)):
 
-        responseData = modules.requester.makeFindPeopleRequest(request_id, request_size, True)
-        returned_users = len(responseData['Body']['ResultSet'])
+            request_id, returned_users, request_start, request_end = result
+            users_scraped += returned_users
 
-        users_scraped += returned_users
-        request_end = datetime.now()
+            print(f"Request {f'{request_id}':0>3} completed. "
+                  f"Users {f'{request_id * request_size}':0>6} -> {f'{request_id * request_size + returned_users - 1}':0>6} collected. "
+                  f"Request took {request_end - request_start}. Time from start: {request_end - batch_start_timestamp}")
 
-        print(f"Request {request_id} completed. "
-              f"Users {request_id * request_size} -> {request_id * request_size + returned_users - 1} collected. "
-              f"Request took {request_end - request_start}. Time from start: {request_end - batch_start_timestamp}")
 
     scrape_duration = request_end - batch_start_timestamp
 
     print(
         f"Total scrape time was {scrape_duration}. Collecting a total of {users_scraped} users from the active directory.")
 
-    return [users_scraped, request_end, scrape_duration]
+    return [users_scraped, str(request_end), str(scrape_duration)]
 
 
 def commenceScrape(directory_user_count):

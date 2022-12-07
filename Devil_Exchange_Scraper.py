@@ -3,9 +3,9 @@ import utilities.filepaths
 from utilities.format import formatUserChangeString
 from utilities.tools import getDirectoryUserCount, makeRequestsForScrape, calculateRequestsNeeded, wipeResponseFolder, \
     checkDomainName, printOutContactLists, checkLoggedIn, commenceScrape, responseFolderToCSV
-
 import utilities.config
 import modules.grouping
+
 
 def newScrape():
     # New instance. Start fresh
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     directory_user_count = getDirectoryUserCount()
     cached_user_count = utilities.cache.values["scraped_users_count"]
 
-    if cached_user_count == -1:
+    if cached_user_count is None:
         # New instance. Start fresh
         newScrape()
 

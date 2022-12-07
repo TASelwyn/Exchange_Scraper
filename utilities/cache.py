@@ -1,8 +1,8 @@
 import json
 import os
-
+from utilities.filepaths import data_root
 global values
-cache_filepath = "data/cache.json"
+cache_filepath = data_root.joinpath("cache.json")
 
 
 def readCache():
@@ -23,13 +23,12 @@ def createCache():
     global values
 
     values = {
-        "scraped_users_count": -1,
+        "scraped_users_count": None,
         "scraped_users_timestamp": "",
         "scrape_duration": ""
     }
 
-    if not os.path.exists(os.path.dirname(cache_filepath)):
-        os.makedirs(os.path.dirname(cache_filepath))
+    data_root.mkdir(parents=True, exist_ok=True)
 
     saveCache()
 

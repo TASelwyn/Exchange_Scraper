@@ -1,10 +1,12 @@
-data_root = "data/"
-names_dir = f"{data_root}/name_dumps"
-responses_dir = f"{data_root}/responses"
-discrepancies_dir = f"{names_dir}/discrepancies"
+from pathlib import Path
 
-discrepancies_unpopular_path = f"{discrepancies_dir}/unpopular_names.json"
-discrepancies_master_csv_path = f"{discrepancies_dir}/master_output.csv"
+data_root = Path.cwd().joinpath("data")
+names_dir = data_root.joinpath("name_dumps")
+responses_dir = data_root.joinpath("responses")
+discrepancies_dir = names_dir.joinpath("discrepancies")
 
-unpopular_path = f"{names_dir}/unpopular_names.json"
-master_csv_path = f"{names_dir}/master_output.csv"
+discrepancies_unpopular_path = discrepancies_dir.joinpath("unpopular_names.json")
+discrepancies_master_csv_path = discrepancies_dir.joinpath("master_output.csv")
+
+unpopular_path = names_dir.joinpath("unpopular_names.json")
+master_csv_path = names_dir.joinpath("master_output.csv")
